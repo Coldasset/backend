@@ -157,7 +157,7 @@ export default async function userRoutes(app: FastifyInstance) {
   );
 
   //Fetch User
-  app.get<{ Params: FetchUserInput }>('/getUser/:value', {
+  app.get<{ Params: FetchUserInput, Querystring: { full: string } }>('/getUser/:value', {
     preHandler: app.authenticate,
     schema: {
       tags: ['Admins'],

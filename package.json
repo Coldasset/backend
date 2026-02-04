@@ -4,7 +4,7 @@
   "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "yarn && tsc",
+    "build": "bun install && tsc",
     "start": "node dist/server.js",
     "dev": "tsnd --respawn --transpile-only --exit-child src/server.ts",
     "lint": "eslint --ext .js,.ts .",
