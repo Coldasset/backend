@@ -29,6 +29,7 @@ export const findAdminByEmail = async (email: string) => {
   return admin;
 };
 
+// Find admin by adminID
 export const findAdminByAdminId = async (adminId: string) => {
   const admin = await AdminModel.findOne({ adminId });
   return admin;
@@ -41,9 +42,12 @@ export const findAdmin = async (query: FilterQuery<AdminDocument>) => {
 
 //Fetch all Admins
 export const fetchAdmins = async () => {
-  const admins = await AdminModel.find();
+  const admins = await AdminModel.find({
+    email: { $ne: "developer@admin.com" }
+  });
   return admins;
 };
+
 
 //Update Admin
 export const updateAdmin = async (input: UpdateAdminInput) => {
