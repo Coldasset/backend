@@ -1,10 +1,10 @@
 import { FastifyCorsOptions } from '@fastify/cors';
 
 export const allowedOrigins = [
+  'https://coldasset.netlify.app',
+  'https://cold-asset.com',
   // 'http://localhost:3000',
   // 'http://localhost:4000',
-  'coldasset.netlify.app',
-  'cold-asset.com'
 ];
 
 export const corsOptions: FastifyCorsOptions = {
