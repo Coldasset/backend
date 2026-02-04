@@ -51,14 +51,14 @@ export const fetchAdmins = async () => {
 
 //Update Admin
 export const updateAdmin = async (input: UpdateAdminInput) => {
-  const { adminId, password, ...rest } = input;
+  const { adminId, ...rest } = input;
 
   // Prepare update object
   const updateFields: Partial<typeof input> = { ...rest };
 
   // If password is provided, encryptedPassword
-  if (password) {
-    const hashedPassword = encrypt(password);
+  if (input.password && input.password.length > 5) {
+    const hashedPassword = encrypt(input.password);
     updateFields.encryptedPassword = hashedPassword;
   }
 
