@@ -51,6 +51,7 @@ export const fetchAdmins = async () => {
 
 //Update Admin
 export const updateAdmin = async (input: UpdateAdminInput) => {
+  
   const { adminId, password, ...rest } = input;
 
   // Prepare update object
@@ -63,8 +64,8 @@ export const updateAdmin = async (input: UpdateAdminInput) => {
     { new: true, runValidators: true }
   );
 
-  if (input.password) {
-    const hashedPassword = encrypt(input.password);
+  if (password) {
+    const hashedPassword = encrypt(password);
     updateFields.encryptedPassword = hashedPassword;
   }
 
