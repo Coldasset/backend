@@ -51,22 +51,30 @@ export const fetchAdmins = async () => {
 
 //Update Admin
 export const updateAdmin = async (input: UpdateAdminInput) => {
-  const { adminId, ...rest } = input;
+  const { adminId, password, ...rest } = input;
 
   // Prepare update object
-  const updateFields: Partial<typeof input> = { ...rest };
+  const updateFields: Partial<typeof rest> = { ...rest };
 
-  // If password is provided, encryptedPassword
-  if (input.password && input.password.length > 5) {
-    const hashedPassword = encrypt(input.password);
-    updateFields.encryptedPassword = hashedPassword;
-  }
-
-  const updatedAdmin = await AdminModel.findOneAndUpdate(
+  // Save other details
+  const admin = await AdminModel.findOneAndUpdate(
     { adminId },
     { $set: updateFields },
     { new: true, runValidators: true }
   );
 
-  return updatedAdmin;
+  if (input.password) {
+    const hashedPassword = encrypt(input.password);
+    updateFields.encryptedPassword = hashedPassword;
+  }
+
+  if (!admin) return null;
+
+  // Save for password
+  if (password) {
+    admin.password = password;
+    await admin.save();
+  }
+
+  return admin;
 };

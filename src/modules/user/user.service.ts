@@ -71,10 +71,10 @@ export const fetchUser = async (value: string, full: boolean) => {
 
 //Update User Details
 export const updateUser = async (input: EditUserInput) => {
-  
-  const { email, ...rest } = input;
 
-  // Flatten nested updates for safe partial $set operations
+  const { email, password, ...rest } = input;
+
+  // Filter and save other details
   const updateFields: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(rest)) {
@@ -87,22 +87,32 @@ export const updateUser = async (input: EditUserInput) => {
     }
   }
 
-  if (input.password?.trim()) {
-    const hashedPassword = encrypt(input.password);
+  if (typeof input.isSuspended === 'boolean') {
+    updateFields.suspendedDate = input.isSuspended
+      ? new Date()
+      : null;
+  }
+
+  if (password) {
+    const hashedPassword = encrypt(password);
     updateFields.encryptedPassword = hashedPassword;
   }
 
-  if (typeof input.isSuspended === 'boolean') {
-    updateFields.suspendedDate = input.isSuspended ? new Date() : null;
-  }
-
-  const updatedUser = await UserModel.findOneAndUpdate(
+  const user = await UserModel.findOneAndUpdate(
     { email },
     { $set: updateFields },
     { new: true, runValidators: true }
   );
 
-  return updatedUser;
+  if (!user) return null;
+
+  // Save Password
+  if (password?.trim()) {
+    user.password = password;
+    await user.save();
+  }
+
+  return user;
 };
 
 //Update User Session
