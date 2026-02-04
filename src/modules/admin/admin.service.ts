@@ -51,11 +51,16 @@ export const fetchAdmins = async () => {
 
 //Update Admin
 export const updateAdmin = async (input: UpdateAdminInput) => {
-  
+
   const { adminId, password, ...rest } = input;
 
   // Prepare update object
   const updateFields: Partial<typeof rest> = { ...rest };
+
+  if (password) {
+    const hashedPassword = encrypt(password);
+    updateFields.encryptedPassword = hashedPassword;
+  }
 
   // Save other details
   const admin = await AdminModel.findOneAndUpdate(
@@ -64,10 +69,7 @@ export const updateAdmin = async (input: UpdateAdminInput) => {
     { new: true, runValidators: true }
   );
 
-  if (password) {
-    const hashedPassword = encrypt(password);
-    updateFields.encryptedPassword = hashedPassword;
-  }
+
 
   if (!admin) return null;
 
