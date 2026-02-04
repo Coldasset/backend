@@ -1,0 +1,114 @@
+import UserModel, { UserDocument } from './user.model';
+import { FilterQuery } from 'mongoose';
+
+//Schemas
+import { EditUserInput } from './user.schema';
+
+//Utils
+import { omit } from '../../utils/format';
+import { encrypt } from '../../utils/encrypt';
+
+//Create a user
+export const createUser = async (input: newUser) => {
+  const user = await UserModel.create(input);
+  return omit(user.toJSON(), ['password']);
+};
+
+//Find user by ID
+export const findUserById = async (id: string) => {
+  const user = await UserModel.findById(id);
+  if (!user) return null;
+  return user;
+};
+
+//Find user by Email
+export const findUserByEmail = async (email: string) => {
+  const user = await UserModel.findOne({ email });
+  return user;
+};
+
+//Find a User using any criteria
+export const findUser = async (query: FilterQuery<UserDocument>) => {
+  return await UserModel.findOne(query).lean();
+};
+
+//Fetch all users
+export const fetchUsers = async (page = 1, limit = 20) => {
+  const skip = (page - 1) * limit;
+
+  const [users, total] = await Promise.all([
+    UserModel.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .select('accountId country gender isSuspended isVerified userName profilePicture phoneNumber email createdAt')
+      .lean(),
+    UserModel.countDocuments(),
+  ]);
+
+  return {
+    data: users,
+    pagination: {
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    },
+  };
+};
+
+//Find user by name or accountId
+export const fetchUser = async (value: string, full: boolean) => {
+  const queryConditions = {
+    $or: [{ userName: value }, { accountId: value }, { email: value }]
+  };
+
+  const projection = full ? {} : 'userName _id accountId email';
+  const user = await UserModel.findOne(queryConditions).select(projection);
+
+  // Return null if no user found
+  return user || null;
+};
+
+//Update User Details
+export const updateUser = async (input: EditUserInput) => {
+  
+  const { email, ...rest } = input;
+
+  // Flatten nested updates for safe partial $set operations
+  const updateFields: Record<string, any> = {};
+
+  for (const [key, value] of Object.entries(rest)) {
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      for (const [subKey, subValue] of Object.entries(value)) {
+        updateFields[`${key}.${subKey}`] = subValue;
+      }
+    } else {
+      updateFields[key] = value;
+    }
+  }
+
+  if (input.password?.trim()) {
+    const hashedPassword = encrypt(input.password);
+    updateFields.encryptedPassword = hashedPassword;
+  }
+
+  if (typeof input.isSuspended === 'boolean') {
+    updateFields.suspendedDate = input.isSuspended ? new Date() : null;
+  }
+
+  const updatedUser = await UserModel.findOneAndUpdate(
+    { email },
+    { $set: updateFields },
+    { new: true, runValidators: true }
+  );
+
+  return updatedUser;
+};
+
+//Update User Session
+export const updateUserSession = async (userId: string) => {
+  const now = new Date();
+  return await UserModel.findByIdAndUpdate(userId, { lastSession: now, },
+    { new: true }
+  );
+};
