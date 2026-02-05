@@ -1,11 +1,16 @@
 import { FastifyCorsOptions } from '@fastify/cors';
+import { NODE_ENV } from '../config';
 
-export const allowedOrigins = [
-  'https://coldasset.netlify.app',
-  'https://cold-asset.com',
-  // 'http://localhost:3000',
-  // 'http://localhost:4000',
-];
+export const allowedOrigins = NODE_ENV === 'development'
+  ? [
+    'http://localhost:3000',
+    'http://localhost:4000'
+  ]
+  : [
+    'https://coldasset.netlify.app',
+    'https://cold-asset.com'
+  ];
+
 
 export const corsOptions: FastifyCorsOptions = {
   origin: (origin, cb) => {

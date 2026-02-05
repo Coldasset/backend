@@ -38,8 +38,20 @@ export const createNewTransactionHandler = async (request: FastifyRequest<{ Body
 
   const body = request.body;
 
+  // Find User and Make sure the user isn't suspended or has a pending transaction
   const user = await findUserById(userId);
   if (!user) return sendResponse(reply, 400, false, 'User not found');
+
+  if (user.isSuspended) return sendResponse(reply, 403, false, 'Account suspended');
+
+  const pendingTransaction = await checkPendingTransaction(userId);
+  if (pendingTransaction) return sendResponse(reply, 403, false, 'You have a pending transaction');
+
+  // Fetch user balance and make sure user has that amount
+  if (body.transactionType === "sent") {
+    const balance = await getUserBalanceByCoin(userId);
+    if (balance[body.coin] < body.amount) return sendResponse(reply, 409, false, `Transaction Incomplete. Insufficient ${body.coin} Balance`)
+  }
 
   let recipient;
   if (body.transactionType === TransactionType.SENT && body.receiver) {
@@ -48,10 +60,6 @@ export const createNewTransactionHandler = async (request: FastifyRequest<{ Body
     recipient = receiverDetails;
   }
 
-  if (user.isSuspended) return sendResponse(reply, 403, false, 'Account suspended');
-
-  const pendingTransaction = await checkPendingTransaction(userId);
-  if (pendingTransaction) return sendResponse(reply, 403, false, 'You have a pending transaction');
 
   const transactionHash = generateTransactionHash();
 

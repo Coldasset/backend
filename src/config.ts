@@ -25,6 +25,7 @@ const envSchema = z.object({
   REDIS_PASSWORD: z.string(),
   REDIS_HOST: z.string(),
   REDIS_PORT: z.coerce.number(),
+  NODE_ENV: z.string(),
 });
 
 // Validate the environment variables
@@ -51,4 +52,5 @@ export const {
   REDIS_PASSWORD,
   REDIS_HOST,
   REDIS_PORT,
+  NODE_ENV
 } = parsedEnv;
