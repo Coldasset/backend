@@ -47,7 +47,7 @@ export default ({ name }: { name: string }) => ({
           <!-- Greeting -->
           <tr>
             <td style="padding-bottom:16px; font-size:16px; line-height:1.6;">
-              Hi ${name},
+              Hi ${name.toUpperCase()},
             </td>
           </tr>
 
